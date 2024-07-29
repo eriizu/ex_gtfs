@@ -1,3 +1,5 @@
+pub mod gtfs_extract;
+
 use multimap::MultiMap;
 use std::collections::HashMap;
 
@@ -37,7 +39,7 @@ impl From<&gtfs_structures::Trip> for Trip {
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
-struct StopTime {
+pub struct StopTime {
     pub time: chrono::NaiveTime,
     pub stop_id: String,
     pub name: String,
@@ -99,5 +101,14 @@ impl Timetable {
             chrono::Weekday::Sun if gtfs_cal.sunday => true,
             _ => false,
         }
+    }
+
+    pub fn to_file(&self, file_name_str: &str) {
+        use spinoff::{spinners, Spinner};
+        let mut spinner = Spinner::new(spinners::Dots, format!("Serializing"), None);
+        let serialized = json5::to_string(&self).unwrap();
+        let mut file = std::fs::File::create(file_name_str).unwrap();
+        std::io::Write::write(&mut file, serialized.as_bytes()).unwrap();
+        spinner.success("Done serialising");
     }
 }
