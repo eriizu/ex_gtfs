@@ -83,6 +83,8 @@ impl Timetable {
         }
     }
 
+    // TODO: function that takes a service id, gets cal and cal_date, checks
+    // for day of the week and expetion.
     pub fn runs_on_weekday(&self, gtfs_cal: &gtfs_structures::Calendar) -> bool {
         let date = self.today;
         // dbg!(date);
@@ -103,12 +105,18 @@ impl Timetable {
         }
     }
 
-    pub fn to_file(&self, file_name_str: &str) {
-        use spinoff::{spinners, Spinner};
-        let mut spinner = Spinner::new(spinners::Dots, format!("Serializing"), None);
-        let serialized = json5::to_string(&self).unwrap();
-        let mut file = std::fs::File::create(file_name_str).unwrap();
-        std::io::Write::write(&mut file, serialized.as_bytes()).unwrap();
-        spinner.success("Done serialising");
+    pub fn to_file(&self, file_name_str: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let serialized = json5::to_string(&self)?;
+        let first_size = serialized.len();
+        // INFO: IDFM prefixes all IDs, even though without the prefix the IDs
+        // do not collide. Striping them make data more concise and take up less
+        // working memory and mass storage.
+        let serialized = serialized.replace("IDFM:TRANSDEV_MARNE_LA_VALLEE:", "");
+        let serialized = serialized.replace("IDFM:", "");
+        let second_size = serialized.len();
+        println!("\rserialized size: {second_size} bytes (before id simplification {first_size})");
+        let mut file = std::fs::File::create(file_name_str)?;
+        std::io::Write::write(&mut file, serialized.as_bytes())?;
+        Ok(())
     }
 }

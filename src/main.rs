@@ -13,6 +13,13 @@ fn gtfs_by_arg() {
     for arg in std::env::args().skip(1) {
         let mut tt = timetable::Timetable::new();
         tt.gtfs_extract(&arg);
-        tt.to_file("timetable.json")
+        use spinoff::{spinners, Spinner};
+        let mut spinner = Spinner::new(spinners::Dots, format!("Serializing"), None);
+        if let Err(error) = tt.to_file("timetable.json") {
+            spinner.fail("Serialisation failed");
+            eprintln!("while writing to file: {error}");
+        } else {
+            spinner.success("Done serialising");
+        }
     }
 }
