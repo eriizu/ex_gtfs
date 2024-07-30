@@ -1,7 +1,8 @@
 pub mod gtfs_extract;
+pub mod runs_today;
 
 use multimap::MultiMap;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Timetable {
@@ -13,6 +14,8 @@ pub struct Timetable {
     pub stops: HashMap<String, gtfs_structures::Stop>,
     pub routes: HashMap<String, gtfs_structures::Route>,
     pub trips: MultiMap<String, Trip>,
+    pub running_services: HashSet<String>,
+    pub non_running_services: HashSet<String>,
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -80,6 +83,8 @@ impl Timetable {
             stops: HashMap::new(),
             routes: HashMap::new(),
             trips: MultiMap::new(),
+            running_services: HashSet::new(),
+            non_running_services: HashSet::new(),
         }
     }
 
