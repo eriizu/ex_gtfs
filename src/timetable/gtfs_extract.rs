@@ -1,6 +1,7 @@
 use super::Timetable;
 use spinoff::{spinners, Spinner};
 
+#[allow(dead_code)]
 pub fn gtfs_extract(arg: String) -> std::ops::ControlFlow<()> {
     let mut spinner = Spinner::new(spinners::Dots, format!("Parsing GTFS of: {arg}"), None);
     let gtfs = match gtfs_structures::Gtfs::new(&arg) {
@@ -27,9 +28,9 @@ pub fn gtfs_extract(arg: String) -> std::ops::ControlFlow<()> {
                 potator
                     .calendar
                     .insert(trip.service_id.clone(), service_cal.clone());
-                if !potator.runs_on_weekday(service_cal) {
-                    continue;
-                }
+                // if !potator.runs_on_weekday(service_cal) {
+                //     continue;
+                // }
             }
             if let Some(service_date) = gtfs.calendar_dates.get(&trip.service_id) {
                 potator
@@ -91,9 +92,6 @@ impl Timetable {
                 if let Some(service_cal) = gtfs.calendar.get(&trip.service_id) {
                     self.calendar
                         .insert(trip.service_id.clone(), service_cal.clone());
-                    if !self.runs_on_weekday(service_cal) {
-                        continue;
-                    }
                 }
                 if let Some(service_date) = gtfs.calendar_dates.get(&trip.service_id) {
                     self.calendar_dates
@@ -113,7 +111,6 @@ impl Timetable {
                     // }
                     // break;
                 }
-                // return std::ops::ControlFlow::Continue(());
             }
         }
     }

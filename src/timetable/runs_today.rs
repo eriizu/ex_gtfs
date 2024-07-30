@@ -1,10 +1,14 @@
 use chrono::prelude::*;
 
 impl super::Timetable {
-    pub fn runs_today(&mut self, service_id: &str) -> bool {
-        if self.running_services.contains(service_id) {
+    pub fn runs_today(&self, service_id: &str) -> bool {
+        if self.running_services_cache.borrow().contains(service_id) {
             return true;
-        } else if self.non_running_services.contains(service_id) {
+        } else if self
+            .non_running_services_cache
+            .borrow()
+            .contains(service_id)
+        {
             return false;
         }
         let runs = match self.runs_by_exception(service_id) {
@@ -19,9 +23,13 @@ impl super::Timetable {
             None => self.runs_on_interval_weekday(service_id).unwrap_or(false),
         };
         if runs {
-            self.running_services.insert(service_id.to_owned());
+            self.running_services_cache
+                .borrow_mut()
+                .insert(service_id.to_owned());
         } else {
-            self.non_running_services.insert(service_id.to_owned());
+            self.non_running_services_cache
+                .borrow_mut()
+                .insert(service_id.to_owned());
         }
         runs
     }

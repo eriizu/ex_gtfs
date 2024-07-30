@@ -21,5 +21,6 @@ fn gtfs_by_arg() {
         } else {
             spinner.success("Done serialising");
         }
+        tt.print_running_today();
     }
 }

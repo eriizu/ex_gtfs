@@ -2,6 +2,7 @@ pub mod gtfs_extract;
 pub mod runs_today;
 
 use multimap::MultiMap;
+use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -14,11 +15,11 @@ pub struct Timetable {
     pub stops: HashMap<String, gtfs_structures::Stop>,
     pub routes: HashMap<String, gtfs_structures::Route>,
     pub trips: MultiMap<String, Trip>,
-    pub running_services: HashSet<String>,
-    pub non_running_services: HashSet<String>,
+    running_services_cache: RefCell<HashSet<String>>,
+    non_running_services_cache: RefCell<HashSet<String>>,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct Trip {
     pub id: String,
     pub service_id: String,
@@ -41,7 +42,7 @@ impl From<&gtfs_structures::Trip> for Trip {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
 pub struct StopTime {
     pub time: chrono::NaiveTime,
     pub stop_id: String,
@@ -83,8 +84,19 @@ impl Timetable {
             stops: HashMap::new(),
             routes: HashMap::new(),
             trips: MultiMap::new(),
-            running_services: HashSet::new(),
-            non_running_services: HashSet::new(),
+            running_services_cache: RefCell::new(HashSet::new()),
+            non_running_services_cache: RefCell::new(HashSet::new()),
+        }
+    }
+
+    pub fn print_running_today(&self) {
+        for trip in self
+            .trips
+            .iter()
+            .map(|(_, b)| b)
+            .filter(|trip| self.runs_today(&trip.service_id))
+        {
+            dbg!(trip);
         }
     }
 
