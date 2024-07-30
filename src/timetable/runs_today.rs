@@ -1,6 +1,20 @@
 use chrono::prelude::*;
 
 impl super::Timetable {
+    fn runs_today_uncached(&self, service_id: &str) -> bool {
+        match self.runs_by_exception(service_id) {
+            Some(super::my_gtfs_structs::Exception::Added) => {
+                println!("{service_id} passes by exception");
+                true
+            }
+            Some(super::my_gtfs_structs::Exception::Deleted) => {
+                println!("{service_id} rejected by exception");
+                false
+            }
+            None => self.runs_on_interval_weekday(service_id).unwrap_or(false),
+        }
+    }
+
     pub fn runs_today(&self, service_id: &str) -> bool {
         if self.running_services_cache.borrow().contains(service_id) {
             return true;
@@ -11,17 +25,7 @@ impl super::Timetable {
         {
             return false;
         }
-        let runs = match self.runs_by_exception(service_id) {
-            Some(gtfs_structures::Exception::Added) => {
-                println!("{service_id} passes by exception");
-                true
-            }
-            Some(gtfs_structures::Exception::Deleted) => {
-                println!("{service_id} rejected by exception");
-                false
-            }
-            None => self.runs_on_interval_weekday(service_id).unwrap_or(false),
-        };
+        let runs = self.runs_today_uncached(service_id);
         if runs {
             self.running_services_cache
                 .borrow_mut()
@@ -34,7 +38,7 @@ impl super::Timetable {
         runs
     }
 
-    fn runs_by_exception(&self, service_id: &str) -> Option<gtfs_structures::Exception> {
+    fn runs_by_exception(&self, service_id: &str) -> Option<super::my_gtfs_structs::Exception> {
         if let Some(exceptions) = self.calendar_dates.get(service_id) {
             exceptions
                 .iter()
