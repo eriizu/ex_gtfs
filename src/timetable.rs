@@ -88,28 +88,6 @@ impl Timetable {
         }
     }
 
-    // TODO: function that takes a service id, gets cal and cal_date, checks
-    // for day of the week and expetion.
-    pub fn runs_on_weekday(&self, gtfs_cal: &gtfs_structures::Calendar) -> bool {
-        let date = self.today;
-        // dbg!(date);
-        // dbg!(gtfs_cal);
-        if date < gtfs_cal.start_date || date > gtfs_cal.end_date {
-            return false;
-        }
-        let day_of_week = self.now.weekday();
-        match day_of_week {
-            chrono::Weekday::Mon if gtfs_cal.monday => true,
-            chrono::Weekday::Tue if gtfs_cal.tuesday => true,
-            chrono::Weekday::Wed if gtfs_cal.wednesday => true,
-            chrono::Weekday::Thu if gtfs_cal.thursday => true,
-            chrono::Weekday::Fri if gtfs_cal.friday => true,
-            chrono::Weekday::Sat if gtfs_cal.saturday => true,
-            chrono::Weekday::Sun if gtfs_cal.sunday => true,
-            _ => false,
-        }
-    }
-
     pub fn to_file(&self, file_name_str: &str) -> Result<(), Box<dyn std::error::Error>> {
         let serialized = json5::to_string(&self)?;
         let first_size = serialized.len();
