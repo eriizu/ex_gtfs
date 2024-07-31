@@ -13,6 +13,7 @@ fn gtfs_by_arg() {
     for arg in std::env::args().skip(1) {
         let mut tt = timetable::Timetable::new();
         if let Ok(_) = tt.gtfs_extract(&arg) {
+            tt.deduplicate_stops();
             use spinoff::{spinners, Spinner};
             let mut spinner = Spinner::new(spinners::Dots, format!("Serializing"), None);
             if let Err(error) = tt.to_file("timetable.ron") {
@@ -22,7 +23,6 @@ fn gtfs_by_arg() {
                 spinner.success("Done serialising");
             }
             tt.print_running_today();
-            tt.deduplicate_stops();
         } else {
             use spinoff::{spinners, Spinner};
             let mut spinner = Spinner::new(spinners::Dots, format!("Reading file {arg}"), None);
@@ -35,8 +35,8 @@ fn gtfs_by_arg() {
             spinner.success("Done parsing");
             tt.print_running_today();
             dbg!(tt.served_stops_today());
-            tt.deduplicate_stops();
-            dbg!(tt.served_stops_today());
+            // tt.deduplicate_stops();
+            // dbg!(tt.served_stops_today());
         }
     }
 }

@@ -169,21 +169,15 @@ impl Timetable {
                 .filter(|(_, filter_item)| {
                     if let Some(filter_name) = &filter_item.name {
                         if *filter_name != *name {
-                            // TODO: partial EQ, normalise strings
                             let lhs = unidecode::unidecode(filter_name).to_lowercase();
                             let rhs = unidecode::unidecode(name).to_lowercase();
                             if lhs == rhs {
                                 println!("{filter_name} == {name}");
-                                true
-                            } else {
-                                false
+                                return true;
                             }
-                        } else {
-                            false
                         }
-                    } else {
-                        false
                     }
+                    return false;
                 })
                 .map(|(fe_id, _)| (id.clone(), fe_id.clone()))
                 .collect();
@@ -194,8 +188,8 @@ impl Timetable {
             .for_each(|ids| self.stop_uniformise_names(ids));
     }
 
-    /// Replace name of the stop that has the shortest in bytes as it's most
-    /// of the times the one that lacks the diacritics
+    /// Replace name of the stop that is the shortest in bytes as it's most
+    /// of the time the one that lacks the diacritics.
     fn stop_uniformise_names(&mut self, ids: (String, String)) {
         assert!(ids.0 != ids.1);
         let (Some(stop1), Some(stop2)) = (self.stops.get(&ids.0), self.stops.get(&ids.1)) else {
