@@ -12,10 +12,10 @@ fn main() {
 fn gtfs_by_arg() {
     for arg in std::env::args().skip(1) {
         let mut tt = timetable::Timetable::new();
-        if let Ok(_) = tt.gtfs_extract(&arg) {
+        if tt.gtfs_extract(&arg).is_ok() {
             tt.uniformise_stop_names();
             use spinoff::{spinners, Spinner};
-            let mut spinner = Spinner::new(spinners::Dots, format!("Serializing"), None);
+            let mut spinner = Spinner::new(spinners::Dots, "Serializing", None);
             if let Err(error) = tt.to_file("timetable.ron") {
                 spinner.fail("Serialisation failed");
                 eprintln!("while writing to file: {error}");
@@ -25,12 +25,12 @@ fn gtfs_by_arg() {
             tt.print_running_today();
         } else {
             use spinoff::{spinners, Spinner};
-            let mut spinner = Spinner::new(spinners::Dots, format!("Reading file {arg}"), None);
+            let mut spinner = Spinner::new(spinners::Dots, "Reading file {arg}", None);
             let mut file = std::fs::File::open(arg).unwrap();
             let mut buf = String::new();
             std::io::Read::read_to_string(&mut file, &mut buf).unwrap();
             spinner.success("Done reading");
-            let mut spinner = Spinner::new(spinners::Dots, format!("Parsing..."), None);
+            let mut spinner = Spinner::new(spinners::Dots, "Parsing...", None);
             let tt: timetable::Timetable = ron::from_str(&buf).unwrap();
             spinner.success("Done parsing");
             tt.print_running_today();

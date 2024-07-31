@@ -100,9 +100,7 @@ impl Timetable {
             .filter(|trip| self.runs_today(&trip.service_id))
             .collect();
         trips.sort_by(|a, b| {
-            if let (Some(a_stop), Some(b_stop)) =
-                (a.stop_times.iter().next(), b.stop_times.iter().next())
-            {
+            if let (Some(a_stop), Some(b_stop)) = (a.stop_times.first(), b.stop_times.first()) {
                 a_stop.time.cmp(&b_stop.time)
             } else {
                 std::cmp::Ordering::Equal
@@ -110,7 +108,7 @@ impl Timetable {
         });
         for trip in trips.iter() {
             // dbg!(trip);
-            if let Some(first_stop_time) = trip.stop_times.iter().next() {
+            if let Some(first_stop_time) = trip.stop_times.first() {
                 println!("{}: {}", trip.id, first_stop_time.time);
             }
         }
@@ -120,16 +118,15 @@ impl Timetable {
         let mut set: HashSet<_> = self
             .trips
             .iter()
-            .map(|(_, trip)| {
+            .flat_map(|(_, trip)| {
                 trip.stop_times
                     .iter()
                     .map(|stop_time| stop_time.name.clone())
             })
-            .flatten()
             .collect();
         let mut vector: Vec<_> = set.drain().collect();
         vector.sort();
-        return vector;
+        vector
     }
 
     pub fn to_file(&self, file_name_str: &str) -> Result<(), Box<dyn std::error::Error>> {

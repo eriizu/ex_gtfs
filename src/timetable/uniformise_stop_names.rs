@@ -3,10 +3,10 @@ impl super::Timetable {
     // stops don't always have the same spelling. This functions goal is to make
     // the spelling uniform.
     pub fn uniformise_stop_names(&mut self) {
-        let iter = self.stops.iter().filter_map(|(id, stop)| match &stop.name {
-            Some(name) => Some((id, name)),
-            None => None,
-        });
+        let iter = self
+            .stops
+            .iter()
+            .filter_map(|(id, stop)| stop.name.as_ref().map(|name| (id, name)));
         let mut colliding: Vec<(String, String)> = vec![];
         for (id, name) in iter {
             let mut tmp_colliding: Vec<_> = self
@@ -16,8 +16,7 @@ impl super::Timetable {
                 .filter(|(filter_id, _)| {
                     colliding
                         .iter()
-                        .find(|(a, b)| *a == **filter_id || *b == **filter_id)
-                        .is_none()
+                        .any(|(a, b)| *a == **filter_id || *b == **filter_id)
                 })
                 .filter(|(_, filter_item)| {
                     if let Some(filter_name) = &filter_item.name {
@@ -30,7 +29,7 @@ impl super::Timetable {
                             }
                         }
                     }
-                    return false;
+                    false
                 })
                 .map(|(fe_id, _)| (id.clone(), fe_id.clone()))
                 .collect();
@@ -62,8 +61,7 @@ impl super::Timetable {
         stop.name = Some(name.clone());
         self.trips
             .iter_mut()
-            .map(|(_, trip)| &mut trip.stop_times)
-            .flatten()
+            .flat_map(|(_, trip)| &mut trip.stop_times)
             .filter(|stop_time| stop_time.stop_id == id)
             .for_each(|stop_time| stop_time.name = name.clone());
     }

@@ -55,7 +55,7 @@ impl super::Timetable {
                             return Option::None;
                         }
                     }
-                    return Option::Some(excp_type);
+                    Option::Some(excp_type)
                 })
         } else {
             None
