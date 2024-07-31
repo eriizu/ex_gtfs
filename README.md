@@ -25,7 +25,7 @@ Once it will be done, updating the set will be as easy as:
 - runing my program;
 - that's it, profit!
 
-There is still a lot to experiment with and so architecture concerns I want to work on.
+There is still a lot to experiment with and some architecture concerns I want to work on.
 This is what this repo is for.
 
 ## The future
