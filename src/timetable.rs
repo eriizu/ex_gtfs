@@ -5,103 +5,7 @@ use multimap::MultiMap;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 
-mod my_gtfs_structs {
-    use structural_convert::StructuralConvert;
-
-    #[derive(Clone, serde::Deserialize, serde::Serialize, Debug, StructuralConvert)]
-    #[convert(from(gtfs_structures::Calendar))]
-    pub struct Calendar {
-        pub id: String,
-        pub monday: bool,
-        pub tuesday: bool,
-        pub wednesday: bool,
-        pub thursday: bool,
-        pub friday: bool,
-        pub saturday: bool,
-        pub sunday: bool,
-        pub start_date: chrono::NaiveDate,
-        pub end_date: chrono::NaiveDate,
-    }
-    #[derive(Clone, serde::Deserialize, serde::Serialize, Debug, StructuralConvert)]
-    #[convert(from(gtfs_structures::Stop))]
-    pub struct Stop {
-        pub id: String,
-        pub code: Option<String>,
-        pub name: Option<String>,
-        pub description: Option<String>,
-        // pub location_type: LocationType,
-        pub parent_station: Option<String>,
-        pub zone_id: Option<String>,
-        pub url: Option<String>,
-        pub longitude: Option<f64>,
-        pub latitude: Option<f64>,
-        pub timezone: Option<String>,
-        // pub wheelchair_boarding: Availability,
-        pub level_id: Option<String>,
-        pub platform_code: Option<String>,
-        // pub transfers: Vec<StopTransfer>,
-        // pub pathways: Vec<Pathway>,
-        pub tts_name: Option<String>,
-    }
-
-    #[derive(Clone, serde::Deserialize, serde::Serialize, Debug, StructuralConvert)]
-    #[convert(from(gtfs_structures::Route))]
-    pub struct Route {
-        pub id: String,
-        pub short_name: Option<String>,
-        pub long_name: Option<String>,
-        pub desc: Option<String>,
-        // pub route_type: RouteType,
-        pub url: Option<String>,
-        pub agency_id: Option<String>,
-        pub order: Option<u32>,
-        // pub color: RGB8,
-        // pub text_color: RGB8,
-        // pub continuous_pickup: ContinuousPickupDropOff,
-        // pub continuous_drop_off: ContinuousPickupDropOff,
-    }
-
-    #[derive(Clone, serde::Deserialize, serde::Serialize, Debug, StructuralConvert)]
-    #[convert(from(gtfs_structures::CalendarDate))]
-    pub struct CalendarDate {
-        pub service_id: String,
-        pub date: chrono::NaiveDate,
-        pub exception_type: Exception,
-    }
-
-    #[derive(
-        serde::Serialize,
-        serde::Deserialize,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash,
-        Clone,
-        Copy,
-        StructuralConvert,
-    )]
-    #[convert(from(gtfs_structures::Exception))]
-    pub enum Exception {
-        Added,
-        Deleted,
-    }
-    // impl std::convert::From<&gtfs_structures::Calendar> for Calendar {
-    //     fn from(value: &gtfs_structures::Calendar) -> Self {
-    //         Self {
-    //             id: value.id.clone(),
-    //             monday: value.monday,
-    //             tuesday: value.tuesday,
-    //             wednesday: value.wednesday,
-    //             thursday: value.thursday,
-    //             friday: value.friday,
-    //             saturday: value.saturday,
-    //             sunday: value.sunday,
-    //             start_date: value.start_date,
-    //             end_date: value.end_date,
-    //         }
-    //     }
-    // }
-}
+mod my_gtfs_structs;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Timetable {
@@ -188,13 +92,26 @@ impl Timetable {
     }
 
     pub fn print_running_today(&self) {
-        for trip in self
+        let mut trips: Vec<_> = self
             .trips
             .iter()
             .map(|(_, b)| b)
             .filter(|trip| self.runs_today(&trip.service_id))
-        {
-            dbg!(trip);
+            .collect();
+        trips.sort_by(|a, b| {
+            if let (Some(a_stop), Some(b_stop)) =
+                (a.stop_times.iter().next(), b.stop_times.iter().next())
+            {
+                a_stop.time.cmp(&b_stop.time)
+            } else {
+                std::cmp::Ordering::Equal
+            }
+        });
+        for trip in trips.iter() {
+            // dbg!(trip);
+            if let Some(first_stop_time) = trip.stop_times.iter().next() {
+                println!("{}: {}", trip.id, first_stop_time.time);
+            }
         }
     }
 
@@ -204,10 +121,10 @@ impl Timetable {
         // INFO: IDFM prefixes all IDs, even though without the prefix the IDs
         // do not collide. Striping them make data more concise and take up less
         // working memory and mass storage.
-        // let serialized = serialized.replace("IDFM:TRANSDEV_MARNE_LA_VALLEE:", "");
-        // let serialized = serialized.replace("IDFM:", "");
-        // let second_size = serialized.len();
-        // println!("\rserialized size: {second_size} bytes (before id simplification {first_size})");
+        let serialized = serialized.replace("IDFM:TRANSDEV_MARNE_LA_VALLEE:", "");
+        let serialized = serialized.replace("IDFM:", "");
+        let second_size = serialized.len();
+        println!("\rserialized size: {second_size} bytes (before id simplification {first_size})");
         let mut file = std::fs::File::create(file_name_str)?;
         std::io::Write::write(&mut file, serialized.as_bytes())?;
         Ok(())
