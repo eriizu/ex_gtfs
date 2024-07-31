@@ -22,6 +22,7 @@ fn gtfs_by_arg() {
                 spinner.success("Done serialising");
             }
             tt.print_running_today();
+            tt.deduplicate_stops();
         } else {
             use spinoff::{spinners, Spinner};
             let mut spinner = Spinner::new(spinners::Dots, format!("Reading file {arg}"), None);
@@ -30,9 +31,12 @@ fn gtfs_by_arg() {
             std::io::Read::read_to_string(&mut file, &mut buf).unwrap();
             spinner.success("Done reading");
             let mut spinner = Spinner::new(spinners::Dots, format!("Parsing..."), None);
-            let tt: timetable::Timetable = ron::from_str(&buf).unwrap();
+            let mut tt: timetable::Timetable = ron::from_str(&buf).unwrap();
             spinner.success("Done parsing");
             tt.print_running_today();
+            dbg!(tt.served_stops_today());
+            tt.deduplicate_stops();
+            dbg!(tt.served_stops_today());
         }
     }
 }
