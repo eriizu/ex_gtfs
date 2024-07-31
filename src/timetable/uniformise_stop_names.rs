@@ -37,12 +37,12 @@ impl super::Timetable {
         }
         colliding
             .drain(..)
-            .for_each(|ids| self.stop_uniformise_names(ids));
+            .for_each(|ids| self.keep_longest_stop_name(ids));
     }
 
     /// Replace name of the stop that is the shortest in bytes as it's most
     /// of the time the one that lacks the diacritics.
-    fn stop_uniformise_names(&mut self, ids: (String, String)) {
+    fn keep_longest_stop_name(&mut self, ids: (String, String)) {
         assert!(ids.0 != ids.1);
         let (Some(stop1), Some(stop2)) = (self.stops.get(&ids.0), self.stops.get(&ids.1)) else {
             return;
@@ -51,11 +51,9 @@ impl super::Timetable {
             return;
         };
         let (id, name) = if name1.len() > name2.len() {
-            let name = name1.clone();
-            (ids.1, name)
+            (ids.1, name1.clone())
         } else {
-            let name = name2.clone();
-            (ids.0, name)
+            (ids.0, name2.clone())
         };
         let stop = self.stops.get_mut(&id).expect("stop to still be there");
         stop.name = Some(name.clone());
