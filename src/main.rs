@@ -13,8 +13,13 @@ fn demo(tt: bus_model::TimeTable) {
     journeys.sort_by(|a, b| a.stops[0].time.cmp(&b.stops[0].time));
     journeys
         .iter()
-        .map(|journey| journey.stops[0].time)
-        .for_each(|time| println!("{:02}:{:02}", time.hour(), time.minute()));
+        .map(|journey| (journey.stops[0].time, &journey.service_id))
+        .for_each(|(time, service_id)| {
+            println!("{:02}:{:02}, {}", time.hour(), time.minute(), service_id)
+        });
+    let tomorrow = now_date.succ_opt().unwrap();
+    dbg!(tt.get_stops_served_on_day(&now_date));
+    dbg!(tt.get_stops_served_on_day(&tomorrow));
 }
 
 fn main() {
@@ -28,7 +33,7 @@ fn main() {
         println!("{now:#?}");
         now.naive_local()
     };
-    if av1 == "parse" {
+    let tt = if av1 == "parse" {
         let mut tt = bus_model::TimeTable::new();
         use spinoff::{spinners, Spinner};
         let mut spinner = Spinner::new(spinners::Dots, "Parsing", None);
@@ -45,11 +50,15 @@ fn main() {
             ron::ser::to_string_pretty(&tt, ron::ser::PrettyConfig::default()).unwrap();
         let mut file = std::fs::File::create("patate.ron").unwrap();
         std::io::Write::write(&mut file, serialized.as_bytes()).unwrap();
+        tt
     } else if av1 == "read" {
         let file = std::fs::File::open("patate.ron").unwrap();
         let tt: bus_model::TimeTable = ron::de::from_reader(file).unwrap();
-        demo(tt);
-    }
+        tt
+    } else {
+        bus_model::TimeTable::new()
+    };
+    demo(tt);
     // gtfs_by_arg();
 
     // let now = std::time::SystemTime::now();
