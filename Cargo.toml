@@ -12,3 +12,4 @@ serde = { version = "1.0.204", features = ["derive"] }
 spinoff = "0.8.0"
 structural-convert = "0.13.0"
 unidecode = "0.3.0"
+bus_model = { path = "/home/eriizu/Arena/20240809_model_bus" }
