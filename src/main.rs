@@ -5,7 +5,6 @@ use chrono::prelude::*;
 fn demo(tt: morningstar_model::TimeTable) {
     let now_naive: chrono::NaiveDateTime = {
         let now = Local::now();
-        println!("{now:#?}");
         now.naive_local()
     };
     let now_date = now_naive.date();
@@ -30,7 +29,6 @@ fn main() {
 
     let now_naive: chrono::NaiveDateTime = {
         let now = Local::now();
-        println!("{now:#?}");
         now.naive_local()
     };
     let tt = if av1 == "parse" {
