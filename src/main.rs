@@ -2,7 +2,7 @@ mod extractor;
 mod timetable;
 
 use chrono::prelude::*;
-fn demo(tt: bus_model::TimeTable) {
+fn demo(tt: morningstar_model::TimeTable) {
     let now_naive: chrono::NaiveDateTime = {
         let now = Local::now();
         println!("{now:#?}");
@@ -34,10 +34,10 @@ fn main() {
         now.naive_local()
     };
     let tt = if av1 == "parse" {
-        let mut tt = bus_model::TimeTable::new();
+        let mut tt = morningstar_model::TimeTable::new();
         use spinoff::{spinners, Spinner};
         let mut spinner = Spinner::new(spinners::Dots, "Parsing", None);
-        let gtfs = gtfs_structures::Gtfs::new("../IDFM-gtfs.zip").unwrap();
+        let gtfs = gtfs_structures::Gtfs::new("../20240714_bus/IDFM-gtfs.zip").unwrap();
         extractor::GtfsExtract::extract_gtfs_route(&mut tt, gtfs, "IDFM:C02298").unwrap();
         spinner.success("Done parsing");
         tt.get_journeys_for_day(&now_naive.date())
@@ -53,10 +53,10 @@ fn main() {
         tt
     } else if av1 == "read" {
         let file = std::fs::File::open("patate.ron").unwrap();
-        let tt: bus_model::TimeTable = ron::de::from_reader(file).unwrap();
+        let tt: morningstar_model::TimeTable = ron::de::from_reader(file).unwrap();
         tt
     } else {
-        bus_model::TimeTable::new()
+        morningstar_model::TimeTable::new()
     };
     demo(tt);
     // gtfs_by_arg();

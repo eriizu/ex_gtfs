@@ -6,7 +6,7 @@ pub trait GtfsExtract {
     ) -> Result<(), Box<dyn std::error::Error>>;
 }
 
-impl GtfsExtract for bus_model::TimeTable {
+impl GtfsExtract for morningstar_model::TimeTable {
     fn extract_gtfs_route(
         &mut self,
         gtfs: gtfs_structures::Gtfs,
@@ -37,7 +37,7 @@ impl GtfsExtract for bus_model::TimeTable {
 }
 
 fn extract_pattern_and_exceptions(
-    tt: &mut bus_model::TimeTable,
+    tt: &mut morningstar_model::TimeTable,
     gtfs: &gtfs_structures::Gtfs,
     service_id: String,
 ) {
@@ -47,11 +47,11 @@ fn extract_pattern_and_exceptions(
     }
     if let Some(callendar_dates) = gtfs.calendar_dates.get(&service_id) {
         for callendar_date in callendar_dates {
-            let excpetion = bus_model::ServiceException {
+            let excpetion = morningstar_model::ServiceException {
                 date: callendar_date.date,
                 exception_type: match callendar_date.exception_type {
-                    gtfs_structures::Exception::Added => bus_model::Exception::Added,
-                    gtfs_structures::Exception::Deleted => bus_model::Exception::Deleted,
+                    gtfs_structures::Exception::Added => morningstar_model::Exception::Added,
+                    gtfs_structures::Exception::Deleted => morningstar_model::Exception::Deleted,
                 },
             };
             tt.excpetions.insert(service_id.clone(), excpetion);
@@ -59,9 +59,9 @@ fn extract_pattern_and_exceptions(
     }
 }
 
-fn callendar_to_pattern(calendar: &gtfs_structures::Calendar) -> bus_model::ServicePattern {
-    use bus_model::WeekdayFlags;
-    let mut pattern = bus_model::ServicePattern {
+fn callendar_to_pattern(calendar: &gtfs_structures::Calendar) -> morningstar_model::ServicePattern {
+    use morningstar_model::WeekdayFlags;
+    let mut pattern = morningstar_model::ServicePattern {
         weekdays: WeekdayFlags::NEVER,
         start_date: calendar.start_date,
         end_date: calendar.end_date,
@@ -90,7 +90,7 @@ fn callendar_to_pattern(calendar: &gtfs_structures::Calendar) -> bus_model::Serv
     return pattern;
 }
 
-fn trip_convert(trip: &gtfs_structures::Trip) -> Option<bus_model::Journey> {
+fn trip_convert(trip: &gtfs_structures::Trip) -> Option<morningstar_model::Journey> {
     let stops: Vec<_> = trip
         .stop_times
         .iter()
@@ -100,19 +100,19 @@ fn trip_convert(trip: &gtfs_structures::Trip) -> Option<bus_model::Journey> {
     if stops.is_empty() {
         None
     } else {
-        Some(bus_model::Journey {
+        Some(morningstar_model::Journey {
             service_id: trip.service_id.clone(),
             stops,
         })
     }
 }
 
-fn stop_time_convert(stop_time: &gtfs_structures::StopTime) -> Option<bus_model::StopTime> {
+fn stop_time_convert(stop_time: &gtfs_structures::StopTime) -> Option<morningstar_model::StopTime> {
     let stop_name = stop_time.stop.name.clone()?;
     let seconds_from_midnight = stop_time.departure_time?;
     let time_of_day =
         chrono::NaiveTime::from_num_seconds_from_midnight_opt(seconds_from_midnight, 0)?;
-    Some(bus_model::StopTime {
+    Some(morningstar_model::StopTime {
         time: time_of_day,
         stop_name: stop_name.clone(),
     })
