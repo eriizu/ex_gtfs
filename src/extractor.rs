@@ -32,6 +32,7 @@ impl GtfsExtract for morningstar_model::TimeTable {
         //     extract_pattern_and_exceptions(self, &gtfs, service_id);
         // }
         self.journeys = journeys;
+        self.sort_journeys_and_stops();
         Ok(())
     }
 }

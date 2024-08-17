@@ -46,8 +46,7 @@ fn main() {
             });
 
         // TODO: this should be part of the model?
-        let serialized =
-            ron::ser::to_string_pretty(&tt, ron::ser::PrettyConfig::default()).unwrap();
+        let serialized = ron::ser::to_string(&tt).unwrap();
         let mut file = std::fs::File::create("patate.ron").unwrap();
         std::io::Write::write(&mut file, serialized.as_bytes()).unwrap();
         tt
